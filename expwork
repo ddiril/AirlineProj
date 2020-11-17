@@ -1,0 +1,56 @@
+library(ggplot2)
+library(dplyr)
+df <-'airsurvey.json'
+airData	<- jsonlite::fromJSON(df)
+airdata <- data.frame(airData)
+
+#Exploring Age
+min(airdata$Age)
+max(airdata$Age)
+hist(airdata$Age, main = 'Ages of the Customers',xlab = 'Ages',border = 'black',col = 'lightblue',xlim = c(15,90),ylim = c(0,300),las = 1,breaks = 40,xaxt='n')
+axis(side=1, at=seq(0,100, 1), labels=seq(0,100, 1))
+
+#Drawing line trial
+df = table(airdata$Age)
+df = data.frame(df)
+lines(df$Var1, df$Freq)
+
+#Airline Status Pie Chart
+table(airdata$Airline.Status)
+ggplot(airdata, aes(x="", y="", fill=Airline.Status)) + geom_bar(stat="identity", width=1) + coord_polar(theta = "y", start = 0) + scale_fill_manual(values = c("lightblue","gold", "lightgreen", "grey"))
+
+#Gender percentage
+prop.table(table(airdata$Gender))
+
+#Price sensitivity bar plot
+table(airdata$Price.Sensitivity)
+counts <- table(airdata$Price.Sensitivity)
+barplot(counts, main="Price Sensitivity", xlab="Scale", border = 'black', col = 'lightblue',ylim = c(0,4000))
+
+#Price sensitivity alternative chart
+Cnt = data.frame(counts)
+plot(Cnt$Var1, Cnt$Freq)
+lines(Cnt$Var1, Cnt$Freq)
+
+#Number of flights per year all
+table(airdata$Year.of.First.Flight)
+counts <- table(airdata$Year.of.First.Flight)
+Cnt = data.frame(counts)
+plot(Cnt$Var1, Cnt$Freq)
+lines(Cnt$Var1, Cnt$Freq)
+
+#Number flights per each partner
+FLpartner <- airdata[c(18,8)]
+DFFL = data.frame(aggregate(FLpartner$Flights.Per.Year, by=list(Category=FLpartner$Partner.Name), FUN=sum))
+df2 <- DFFL[order(DFFL$x),]
+
+#Names of the partners could not be written below the bars.
+barplot(df2$x, main="Price Sensitivity", xlab="Scale", border = 'black', col = 'lightblue', ylim = c(0,23000))
+max(df2$x)
+
+#Which partners got recommended
+Rec_partner <- airdata[c(18,27)]
+Rec2 = data.frame(aggregate(Rec_partner$Likelihood.to.recommend, by=list(Category=Rec_partner$Partner.Name), FUN= "mean"))
+Rec3 <- Rec2[order(Rec2$x),]
+Rec4 <- Rec3 %>% mutate(recommend_name = cut(x, breaks = c(0,7,9, 11), labels = c("detractor", "passive", "promoter")))
+
